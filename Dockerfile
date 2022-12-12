@@ -8,7 +8,7 @@ RUN go mod download
 RUN make build
 
 # run
-FROM gcr.io/distroless/static-debian11
+FROM gcr.io/distroless/static-debian11:nonroot
 COPY --from=build /go/src/app/bin/server /
 CMD ["/server"]
 EXPOSE 8080
