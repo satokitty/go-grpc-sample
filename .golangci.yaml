@@ -1,0 +1,30 @@
+run:
+  skip-dirs:
+    - ".*/gen"
+linters:
+  disable-all: true
+  enable:
+    # default set
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    # optional
+    - bodyclose
+    - depguard
+    - dogsled
+    - dupl
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - godox
+    - goimports
+    - gosec
+    - nakedret
+    - exportloopref
+    - unconvert
+    - unparam
