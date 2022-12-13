@@ -23,8 +23,12 @@ VERSION := $(shell cat VERSION)
 REVISION := $(shell git rev-parse --short HEAD)
 
 # ---------------------------------------------
-# build
+# all
+.PHONY: all
+all: format lint build
 
+# ---------------------------------------------
+# build
 .PHONY: build
 build: $(BINDIR)/$(BINNAME)
 
@@ -45,7 +49,7 @@ gen: $(BUFBIN)
 # format
 .PHONY: format
 format: $(GOIMPORTS)
-	go list -f '{{.Dir}}' ./... | xargs $(GOIMPORTS) -w -local examples/grpc-greeter
+	go list -f '{{.Dir}}' ./... | grep -v '/gen/' | xargs $(GOIMPORTS) -w -local examples/grpc-greeter
 
 # ---------------------------------------------
 .PHONY: clean
