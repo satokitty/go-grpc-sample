@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	greetv1 "examples/grpc-greeter/gen/api/greet/v1"
-	"examples/grpc-greeter/gen/api/greet/v1/greetv1connect"
+	greetv1 "examples/grpc-greeter/internal/gen/api/greet/v1"
+	"examples/grpc-greeter/internal/gen/api/greet/v1/greetv1connect"
 
 	"github.com/bufbuild/connect-go"
 )

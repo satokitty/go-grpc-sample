@@ -7,12 +7,10 @@ package greetv1connect
 import (
 	context "context"
 	errors "errors"
+	v1 "examples/grpc-greeter/internal/gen/api/greet/v1"
+	connect_go "github.com/bufbuild/connect-go"
 	http "net/http"
 	strings "strings"
-
-	connect_go "github.com/bufbuild/connect-go"
-
-	v1 "examples/grpc-greeter/gen/api/greet/v1"
 )
 
 // This is a compile-time assertion to ensure that this generated file and the connect package are

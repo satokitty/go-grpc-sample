@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	greetv1 "examples/grpc-greeter/gen/api/greet/v1"
+	greetv1 "examples/grpc-greeter/internal/gen/api/greet/v1"
 
 	"github.com/bufbuild/connect-go"
 )

@@ -8,4 +8,8 @@ require (
 	google.golang.org/protobuf v1.28.1
 )
 
-require golang.org/x/text v0.5.0 // indirect
+require (
+	github.com/bufbuild/connect-grpchealth-go v1.0.0
+	github.com/bufbuild/connect-grpcreflect-go v1.0.0
+	golang.org/x/text v0.5.0 // indirect
+)
