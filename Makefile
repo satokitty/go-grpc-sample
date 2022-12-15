@@ -9,11 +9,13 @@ GOIMPORTS = $(GOBIN)/goimports
 BUFBIN = $(GOBIN)/buf
 LINTER = $(GOBIN)/golangci-lint
 
+REPORTDIR := $(CURDIR)/reports
+
 # go option
 PKG := ./...
 TAGS :=
 TESTS := .
-TESTFLAGS :=
+TESTFLAGS := -race -v
 LDFLAGS := -w -s -X "main.Version=$(VERSION)" -X "main.Revision=$(REVISION)" -extldflags "-static"
 GOFLAGS :=
 CGO_ENABLED ?= 0
@@ -35,9 +37,31 @@ build: $(BINDIR)/$(BINNAME)
 $(BINDIR)/$(BINNAME): $(SRC)
 	CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -trimpath -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o '$(BINDIR)'/$(BINNAME) ./cmd/server
 
+# ---------------------------------------------
+# test
+
+.PHONY: test
+test: build
+test: lint
+test: test-unit
+
+.PHONY: test-unit
+test-unit:
+	@echo
+	@echo "==> Running unit tests..."
+	go test $(GOFLAGS) -run $(TESTS) $(PKG) $(TESTFLAGS)
+
+.PHONY: coverage
+coverage:
+	@echo
+	@echo "==> Running unit tests with coverage..."
+	@ rm -rf '$(REPORTDIR)'
+	@ mkdir '$(REPORTDIR)'
+	@ REPORTDIR=$(REPORTDIR) ./scripts/coverage.sh
+
 .PHONY: lint
 lint: $(LINTER)
-	$(LINTER) run ./...
+	$(LINTER) run
 
 # ---------------------------------------------
 # protobuf gen
@@ -55,6 +79,7 @@ format: $(GOIMPORTS)
 .PHONY: clean
 clean:
 	@rm -rf '$(BINDIR)'
+	@rm -rf '$(REPORTDIR)'
 
 # ---------------------------------------------
 # dependencies
