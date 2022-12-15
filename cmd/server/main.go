@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -40,12 +41,9 @@ func main() {
 	}()
 
 	log.Printf("SIGNAL %d received, shutting down...\n", <-signals)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalln("Graceful shutdown failed:", err) //nolint:gocritic
+	if err := shutdown(server); err != nil {
+		log.Fatalln("Graceful shutdown failed:", err)
 	}
-	log.Println("Server shutdown.")
 }
 
 func setupHandler() *http.ServeMux {
@@ -60,4 +58,26 @@ func setupHandler() *http.ServeMux {
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
 	return mux
+}
+
+func shutdownGracePeriod() time.Duration {
+	period, err := strconv.Atoi(os.Getenv("GRACE_SHUTDOWN_PERIOD"))
+	if err != nil {
+		return 10 * time.Second
+	}
+	return time.Duration(period) * time.Second
+}
+
+func shutdown(server *http.Server) error {
+	period := shutdownGracePeriod()
+	log.Printf("Wait %s before shutting down...", period.String())
+	time.Sleep(period)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		return err
+	}
+	log.Println("Server shutdown.")
+	return nil
 }
