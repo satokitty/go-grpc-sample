@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-greeter
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: grpc-greeter
+  template:
+    metadata:
+      labels:
+        app: grpc-greeter
+    spec:
+      containers:
+      - name: grpc-greeter
+        image: examples/greeter:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "500m"
+          limits:
+            memory: "64Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+        # gRPC Health Checking Protocolに従ってヘルスチェックを実行.アプリケーションはこのサービスを実装すること.
+        # ref: https://github.com/grpc/grpc/blob/master/doc/health-checking.md
+        livenessProbe:
+          grpc:
+            port: 8080
+        startupProbe:
+          grpc:
+            port: 8080
+          failureThreshold: 3
+          periodSeconds: 5
