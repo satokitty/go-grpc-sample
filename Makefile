@@ -27,7 +27,7 @@ REVISION := $(shell git rev-parse --short HEAD)
 # ---------------------------------------------
 # all
 .PHONY: all
-all: format lint build
+all: clean format lint build coverage
 
 # ---------------------------------------------
 # build
@@ -41,8 +41,8 @@ $(BINDIR)/$(BINNAME): $(SRC)
 # test
 
 .PHONY: test
-test: build
 test: lint
+test: build
 test: test-unit
 
 .PHONY: test-unit
