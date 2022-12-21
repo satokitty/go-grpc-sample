@@ -9,6 +9,7 @@ GOIMPORTS = $(GOBIN)/goimports
 BUFBIN = $(GOBIN)/buf
 LINTER = $(GOBIN)/golangci-lint
 
+
 REPORTDIR := $(CURDIR)/reports
 
 # go option
@@ -57,7 +58,7 @@ coverage:
 	@echo "==> Running unit tests with coverage..."
 	@ rm -rf '$(REPORTDIR)'
 	@ mkdir '$(REPORTDIR)'
-	@ REPORTDIR=$(REPORTDIR) ./scripts/coverage.sh
+	@ REPORTDIR=$(REPORTDIR) ./scripts/coverage.sh --cobertura
 
 .PHONY: lint
 lint: $(LINTER)
