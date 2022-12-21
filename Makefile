@@ -96,6 +96,12 @@ clean:
 	@rm -rf '$(REPORTDIR)'
 
 # ---------------------------------------------
+# Dockerfile
+.PHONY: lint-dockerfile
+lint-dockerfile:
+	@ USE_DOCKER=true ./scripts/lint-dockerfile.sh
+
+# ---------------------------------------------
 # dependencies
 
 $(GOIMPORTS):
