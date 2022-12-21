@@ -9,21 +9,34 @@ GOIMPORTS = $(GOBIN)/goimports
 BUFBIN = $(GOBIN)/buf
 LINTER = $(GOBIN)/golangci-lint
 
-
-REPORTDIR := $(CURDIR)/reports
-
 # go option
 PKG := ./...
 TAGS :=
 TESTS := .
 TESTFLAGS := -race -v
-LDFLAGS := -w -s -X "main.Version=$(VERSION)" -X "main.Revision=$(REVISION)" -extldflags "-static"
+LDFLAGS := -w -s
+EXT_LDFLAGS := -extldflags "-static"
 GOFLAGS :=
 CGO_ENABLED ?= 0
 
+REPORTDIR := $(CURDIR)/reports
+
+GIT_COMMIT = $(shell git rev-parse HEAD)
+GIT_SHA = $(shell git rev-parse --short HEAD)
+GIT_TAG = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
+
 SRC := $(shell find . -type f -name '*.go' -print) go.mod go.sum
-VERSION := $(shell cat VERSION)
-REVISION := $(shell git rev-parse --short HEAD)
+ifdef VERSION
+	BINARY_VERSION
+endif
+BINARY_VERSION ?= ${GIT_TAG}
+
+# Only set Version if building a tag or VERSION is set
+ifneq ($(BINARY_VERSION),)
+	LDFLAGS += -X "main.Version=$(BINARY_VERSION)"
+endif
+LDFLAGS += -X "main.Revision=$(GIT_SHA)"
+LDFLAGS += $(EXT_LDFLAGS)
 
 # ---------------------------------------------
 # all
