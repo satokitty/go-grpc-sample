@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-greeter-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-greeter-client
+  template:
+    metadata:
+      labels:
+        app: grpc-greeter-client
+    spec:
+      containers:
+      - name: grpc-greeter-client
+        image: examples/greeter-client:latest
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "500m"
+          limits:
+            memory: "64Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true

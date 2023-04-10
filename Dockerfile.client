@@ -1,0 +1,12 @@
+FROM golang:1.19 as build
+
+WORKDIR /go/src/app
+COPY . .
+
+RUN go mod download
+RUN make build
+
+FROM gcr.io/distroless/static-debian11:debug-nonroot
+# FROM nicolaka/netshoot:latest
+COPY --from=build /go/src/app/bin/client /
+CMD ["/client"]

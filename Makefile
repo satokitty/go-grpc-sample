@@ -50,6 +50,8 @@ build: $(BINDIR)/$(BINNAME)
 
 $(BINDIR)/$(BINNAME): $(SRC)
 	CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -trimpath -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o '$(BINDIR)'/$(BINNAME) ./cmd/server
+	CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -trimpath -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o '$(BINDIR)'/client ./cmd/client
+	CGO_ENABLED=$(CGO_ENABLED) go build $(GOFLAGS) -trimpath -tags '$(TAGS)' -ldflags '$(LDFLAGS)' -o '$(BINDIR)'/http1server ./cmd/http1-server
 
 # ---------------------------------------------
 # test
@@ -111,4 +113,4 @@ $(BUFBIN):
 	(cd /; go install github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go@latest)
 
 $(LINTER):
-	(cd /; go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1)
+	(cd /; go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.1)

@@ -7,7 +7,7 @@ spec:
     app: grpc-greeter
   type: NodePort
   ports:
-  - name: grpc-greeter
+  - name: greeter
     port: 8080
     targetPort: 8080
     nodePort: 30080
