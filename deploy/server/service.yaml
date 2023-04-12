@@ -11,3 +11,7 @@ spec:
     port: 8080
     targetPort: 8080
     nodePort: 30080
+  - name: greeter-exporter
+    port: 18080
+    targetPort: 18080
+    nodePort: 30081

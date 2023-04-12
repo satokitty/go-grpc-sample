@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	grpcreflect "github.com/bufbuild/connect-grpcreflect-go"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"examples/grpc-greeter/internal/gen/api/greet/v1/greetv1connect"
 	"examples/grpc-greeter/internal/greet/v1/server"
@@ -30,18 +33,23 @@ func main() {
 		WriteTimeout:      5 * time.Second,
 		MaxHeaderBytes:    8 * 1024,
 	}
+	metricsServer := setupMetricsExporter()
+	servers := []*http.Server{server, metricsServer}
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		log.Printf("Start server at %s...\n", server.Addr)
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalln("Server closed with error:", err)
-		}
-	}()
+
+	for _, s := range servers {
+		go func(server *http.Server) {
+			log.Printf("Start server at %s...\n", server.Addr)
+			if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalln("Server closed with error:", err)
+			}
+		}(s)
+	}
 
 	log.Printf("SIGNAL %d received, shutting down...\n", <-signals)
-	if err := shutdown(server); err != nil {
+	if err := shutdown(servers...); err != nil {
 		log.Fatalln("Graceful shutdown failed:", err)
 	}
 }
@@ -60,6 +68,20 @@ func setupHandler() *http.ServeMux {
 	return mux
 }
 
+func setupMetricsExporter() *http.Server {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	return &http.Server{
+		Addr:              ":18080",
+		Handler:           mux,
+		ReadHeaderTimeout: time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      5 * time.Second,
+		MaxHeaderBytes:    8 * 1024,
+	}
+}
+
 func shutdownGracePeriod() time.Duration {
 	period, err := strconv.Atoi(os.Getenv("GRACE_SHUTDOWN_PERIOD"))
 	if err != nil {
@@ -68,16 +90,51 @@ func shutdownGracePeriod() time.Duration {
 	return time.Duration(period) * time.Second
 }
 
-func shutdown(server *http.Server) error {
+// func shutdown(server *http.Server) error {
+// 	period := shutdownGracePeriod()
+// 	log.Printf("Wait %s before shutting down...", period.String())
+// 	time.Sleep(period)
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+// 	if err := server.Shutdown(ctx); err != nil {
+// 		return err
+// 	}
+// 	log.Println("Server shutdown.")
+// 	return nil
+// }
+
+func shutdown(servers ...*http.Server) error {
 	period := shutdownGracePeriod()
-	log.Printf("Wait %s before shutting down...", period.String())
+	log.Printf("Wait %s before shutting down...\n", period.String())
 	time.Sleep(period)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
-		return err
+
+	errs := make(chan error, len(servers))
+	wg := new(sync.WaitGroup)
+
+	for _, server := range servers {
+		wg.Add(1)
+		go func(server *http.Server) {
+			defer wg.Done()
+			if err := server.Shutdown(ctx); err != nil {
+				errs <- err
+			}
+		}(server)
 	}
-	log.Println("Server shutdown.")
+
+	wg.Wait()
+	close(errs)
+	if len(errs) > 0 {
+		e := make([]error, len(errs))
+		for i := 0; i < len(errs); i++ {
+			e[i] = <-errs
+		}
+
+		return errors.Join(e...)
+	}
+
 	return nil
 }
