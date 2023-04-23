@@ -21,6 +21,7 @@ import (
 
 	"examples/grpc-greeter/internal/gen/api/greet/v1/greetv1connect"
 	"examples/grpc-greeter/internal/greet/v1/server"
+	"examples/grpc-greeter/internal/metrics"
 )
 
 func main() {
@@ -70,7 +71,7 @@ func setupHandler() *http.ServeMux {
 
 func setupMetricsExporter() *http.Server {
 	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/metrics", metrics.WithRetrieveMetrics(promhttp.Handler()))
 
 	return &http.Server{
 		Addr:              ":18080",
