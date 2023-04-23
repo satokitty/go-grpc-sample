@@ -119,9 +119,11 @@ func shutdown(servers ...*http.Server) error {
 		wg.Add(1)
 		go func(server *http.Server) {
 			defer wg.Done()
+			addr := server.Addr
 			if err := server.Shutdown(ctx); err != nil {
 				errs <- err
 			}
+			log.Printf("Server %s shutted down.\n", addr)
 		}(server)
 	}
 
